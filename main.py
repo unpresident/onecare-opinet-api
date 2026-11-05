@@ -5,11 +5,11 @@ from pyproj import Transformer
 
 app = FastAPI(title="OneCare Opinet API Engine")
 
-# 브라우저 보안 규정(CORS) 완전 해제
+# 브라우저 전면 허용 (CORS 충돌 방지)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -51,14 +51,13 @@ def get_opinet_stations(
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
 
     try:
-        res = requests.get(url, params=params, headers=headers, timeout=6)
+        res = requests.get(url, params=params, headers=headers, timeout=10)
         res.raise_for_status()
         data = res.json()
         
         oil_list = data.get("RESULT", {}).get("OIL", [])
         stations = oil_list if isinstance(oil_list, list) else [oil_list] if oil_list else []
         
-        # 정렬 (1: 최저가순, 2: 거리순)
         if sort == "2":
             stations.sort(key=lambda x: float(x.get("DISTANCE", 0)))
         else:
